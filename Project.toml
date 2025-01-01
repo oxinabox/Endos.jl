@@ -3,11 +3,16 @@ uuid = "01662707-e366-4c4a-a509-54f5bf78c792"
 authors = ["Frames White <me@oxinabox.net> and contributors"]
 version = "1.0.0-DEV"
 
+[deps]
+DataDeps = "124859b0-ceae-595e-8997-d05f6a7a8dfe"
+SBML = "e5567a89-2604-4b09-9718-f5f78e97c3bb"
+
 [compat]
 julia = "1.11"
 
 [extras]
+SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test"]
+test = ["Test", "SafeTestsets"]

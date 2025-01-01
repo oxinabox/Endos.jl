@@ -1,6 +1,7 @@
 using Endos
 using Test
+using SafeTestsets
 
 @testset "Endos.jl" begin
-    # Write your tests here.
+    @safetestset "basic_query.jl" include("basic_query.jl")
 end
