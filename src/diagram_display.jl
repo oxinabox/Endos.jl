@@ -60,7 +60,8 @@ function diagram(model, species_of_interest)
         conn = any(r.reversible for r in rs) ? "<-->" : "-->"
         return "\t$m1name $conn $m2name"
     end
-    
+
+    print("flowchart TD")
     lines = collect(values(name2vertex))
     push!(lines, "")
     append!(lines, edges)
