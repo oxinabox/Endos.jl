@@ -1,3 +1,22 @@
+
+function print_chem(io::IO, m::SBML.Model, gr::SBML.GPARef)
+    gp = m.gene_products[gr.gene_product]
+    print(io, gp.label)
+end
+
+function print_chem(io::IO, m::SBML.Model, op::Union{SBML.GPAOr,SBML.GPAAnd})
+    h, ts... = op.terms
+    print_chem(io, m, h)
+    for t in ts
+        if op isa SBML.GPAAnd
+            print(io, " & ")
+        else
+            print(io, " | ")
+        end
+        print_chem(io, m, t)
+    end
+end
+
 print_chem(io::IO, m::SBML.Model, s::SBML.Species) = print(io, "$(s.name) [$(s.compartment)]")
 function print_chem(io::IO, m::SBML.Model, sr::SBML.SpeciesReference)
     if sr.stoichiometry != 1

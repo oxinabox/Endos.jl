@@ -24,9 +24,45 @@ function mermaid_string(s::SBML.Species)
     return "\t$(vertex_name(s))(\"$title $url_str\")"
 end
 
-vertex_name(s::SBML.Species) = s.name
 
-merge_reaction(r1, ::Nothing) = r1
+function mermaid_string(m::SBML.Model, gr::SBML.GPARef)
+    gp = m.gene_products[gr.gene_product]
+    str = gp.label
+
+    uris = reduce(vcat, cv.resource_uris for cv in gp.cv_terms)
+    filter!(contains("uniprot"), uris)
+    if !isempty(uris)
+        uri = first(uris)
+        str *= """(<a href='$uri'>⛓</a>)"""
+    end
+    return str
+end
+
+function mermaid_string(m::SBML.Model, op::Union{SBML.GPAOr,SBML.GPAAnd})
+    delim = op isa SBML.GPAAnd ? " & " : " | " 
+    return join(mermaid_string.(Ref(m), op.terms), delim)
+end
+
+function mermaid_string(m::SBML.Model, ((m1name, m2name), rs))
+    gprs = unique(r.gene_product_association for r in rs if !isnothing(r.gene_product_association))  # TODO May need to merge within Ors
+    label = join((mermaid_string(m, gpr) for gpr in gprs), " | ")
+
+    reversible = any(r.reversible for r in rs)
+    conn = if !isempty(label) && reversible
+        "<-$label->"
+    elseif isempty(label) && reversible
+        "<->"
+    elseif !isempty(label) && !reversible
+        "--$label->"
+    else
+        @assert isempty(label) && !reversible
+        "-->"
+    end
+    
+    return "\t$m1name $conn $m2name"
+end
+
+vertex_name(s::SBML.Species) = s.name
 
 function diagram(model, species_of_interest)
     # We assume name is a consistent representation of the metabolite that is compartment independent
@@ -56,10 +92,7 @@ function diagram(model, species_of_interest)
         end
     end
 
-    edges = map(collect(names2reactions)) do ((m1name, m2name), rs)
-        conn = any(r.reversible for r in rs) ? "<-->" : "-->"
-        return "\t$m1name $conn $m2name"
-    end
+    edges = map(Base.Fix1(mermaid_string, model), collect(names2reactions))
 
     print("flowchart TD")
     lines = collect(values(name2vertex))
