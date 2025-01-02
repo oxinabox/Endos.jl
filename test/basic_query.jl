@@ -3,11 +3,8 @@ using SBML
 
 model = human_gem()
 
-species_by_name = Dict{String, Dict{String, SBML.Species}}()
-species_by_chebi = Dict{String, Dict{String, SBML.Species}}()
-for (_, s) in model.species
-    get!(Dict{String, SBML.Species}, species_by_name, s.name)[s.compartment] = s
-end
+
+species_by_name = index_species_by_name_and_compartment(model)
 
 species_T = species_by_name["testosterone"]["c"]
 reactions_from_T = filter(model.reactions) do (_, r)
