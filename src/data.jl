@@ -1,4 +1,5 @@
 function init_data()
+    ENV["DATADEPS_ALWAYS_ACCEPT"] = "true"    
     register(DataDep(
         "HumanGEM v1.19",
         """
