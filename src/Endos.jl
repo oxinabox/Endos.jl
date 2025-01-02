@@ -1,7 +1,6 @@
 module Endos
 using DataDeps
 using SBML
-using SBML: Reaction, Species, SpeciesReference, Model
 using HTTP, JSON3
 
 export human_gem, print_chem, str_chem, search_wikidata, diagram
