@@ -38,14 +38,22 @@ function mermaid_string(m::SBML.Model, gr::SBML.GPARef)
     return str
 end
 
+mermaid_string(m::SBML.Model, ::Nothing) = ""
+
 function mermaid_string(m::SBML.Model, op::Union{SBML.GPAOr,SBML.GPAAnd})
     delim = op isa SBML.GPAAnd ? " & " : " | " 
-    return join(mermaid_string.(Ref(m), op.terms), delim)
+    term_strs = mermaid_string.(Ref(m), op.terms)
+    return join(sort(term_strs), delim)
 end
 
+_merge_gpr(a::SBML.GPAOr, b::SBML.GPAOr) = SBML.GPAOr(a.terms ∪ b.terms)
+_merge_gpr(a, ::Nothing) = a
+_merge_gpr(::Nothing, a) = a
+_merge_gpr(::Nothing, ::Nothing) = nothing
+# if needed could put other things for GPARef and GPAAnd here
+
 function mermaid_string(m::SBML.Model, ((m1name, m2name), rs))
-    gprs = unique(r.gene_product_association for r in rs if !isnothing(r.gene_product_association))  # TODO May need to merge within Ors
-    label = join((mermaid_string(m, gpr) for gpr in gprs), " | ")
+    label = mermaid_string(m, mapreduce(x->x.gene_product_association, _merge_gpr, rs))
 
     reversible = any(r.reversible for r in rs)
     conn = if !isempty(label) && reversible
