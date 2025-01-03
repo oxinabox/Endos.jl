@@ -1,3 +1,5 @@
+_WIKIDATA_CACHE = Dict{String, JSON3.Object}() 
+
 """
     search_wikidata(search_str::AbstractString)
 
@@ -7,18 +9,20 @@ Resturns the data for the most relevent (best matching) result.
 Example: `search_wikidata("haswbstatement:P683=16469")`
 """
 function search_wikidata(search_str::AbstractString)
-    search_url="https://www.wikidata.org/w/api.php?action=query"
-    search_url *= "&list=search"
-    search_url *= "&format=json"
-    search_url *= "&srprop=extensiondata"
-    search_url *= "&srsearch=$search_str"
-    @debug "searching with" search_url
-    search_resp = JSON3.read(HTTP.get(search_url).body)
-    entity_id = first(search_resp.query.search).title
+    get!(_WIKIDATA_CACHE, search_str) do
+        search_url="https://www.wikidata.org/w/api.php?action=query"
+        search_url *= "&list=search"
+        search_url *= "&format=json"
+        search_url *= "&srprop=extensiondata"
+        search_url *= "&srsearch=$search_str"
+        @debug "searching with" search_url
+        search_resp = JSON3.read(HTTP.get(search_url).body)
+        entity_id = first(search_resp.query.search).title
 
-    data_url = "http://www.wikidata.org/entity/$entity_id.json"
-    data_resp = JSON3.read(HTTP.get(data_url).body)
-    return only(data_resp.entities)[2]
+        data_url = "http://www.wikidata.org/entity/$entity_id.json"
+        data_resp = JSON3.read(HTTP.get(data_url).body)
+        return only(data_resp.entities)[2]
+    end
 end
 
 

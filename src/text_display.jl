@@ -1,27 +1,57 @@
 
-print_chem(io::IO, m::Model, s::Species) = print(io, s.name)
-function print_chem(io::IO, m::Model, sr::SpeciesReference)
+function print_chem(io::IO, m::SBML.Model, gr::SBML.GPARef)
+    gp = m.gene_products[gr.gene_product]
+    print(io, gp.label)
+end
+
+function print_chem(io::IO, m::SBML.Model, op::Union{SBML.GPAOr,SBML.GPAAnd})
+    h, ts... = op.terms
+    print_chem(io, m, h)
+    for t in ts
+        if op isa SBML.GPAAnd
+            print(io, " & ")
+        else
+            print(io, " | ")
+        end
+        print_chem(io, m, t)
+    end
+end
+
+print_chem(io::IO, m::SBML.Model, s::SBML.Species) = print(io, "$(s.name) [$(s.compartment)]")
+function print_chem(io::IO, m::SBML.Model, sr::SBML.SpeciesReference)
     if sr.stoichiometry != 1
         print(io, sr.stoichiometry)
         print(io, "*")
     end
     print_chem(io, m, m.species[sr.species])
 end
-function print_chem(io::IO, m::Model, (x, xxs...)::AbstractVector{SpeciesReference})
+function print_chem(io::IO, m::SBML.Model, xs::AbstractVector{SBML.SpeciesReference})
+    if isempty(xs)
+        print(io, "nothing")
+        return
+    end
+    (x, xxs...) = xs
     print_chem(io, m, x)
     for x in xxs
         print(io, " + ")
         print_chem(io, m, x)
     end
 end
-function print_chem(io::IO, m::Model, r::Reaction)
+function print_chem(io::IO, m::SBML.Model, r::SBML.Reaction)
     print_chem(io, m, r.reactants)
-    print(io, r.reversible ? " --> " : " <=> ")
+    print(io, r.reversible ? " <-> " : " --> ")
     print_chem(io, m, r.products)
 
     if !isnothing(r.name)
-        print("\t(reaction: $(r.name))")
+        print(io, "\t(reaction: $(r.name))")
     end
     println(io)
 end
-print_chem(m::Model, x) = print_chem(stdout, m, x)
+print_chem(m::SBML.Model, x) = print_chem(stdout, m, x)
+
+function str_chem(m::SBML.Model, x)
+    iob = IOBuffer()
+    print_chem(iob, m, x)
+    seekstart(iob)
+    return read(iob, String)
+end

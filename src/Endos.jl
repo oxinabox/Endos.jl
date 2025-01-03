@@ -1,13 +1,15 @@
 module Endos
 using DataDeps
 using SBML
-using SBML: Reaction, Species, SpeciesReference, Model
 using HTTP, JSON3
+using Kroki: Kroki
 
-export human_gem, print_chem, index_species_by_name_and_compartment, search_wikidata
+export human_gem, print_chem, str_chem, search_wikidata, diagram
+export index_species_by_name_and_compartment, reactions_from, reactions_to, reactions_involving
 
 include("data.jl")
 include("text_display.jl")
+include("diagram_display.jl")
 include("wikidata.jl")
 include("sbml_helpers.jl")
 
