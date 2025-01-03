@@ -94,9 +94,10 @@ function diagram(model, species_of_interest)
 
     edges = map(Base.Fix1(mermaid_string, model), collect(names2reactions))
 
-    println("flowchart TD")
-    lines = collect(values(name2vertex))
+    lines = ["flowchart TD"]
+    append!(lines, values(name2vertex))
     push!(lines, "")
     append!(lines, edges)
-    print(join(lines, "\n"))
+    str = join(lines, "\n")
+    return Kroki.Diagram(:mermaid, str)
 end
