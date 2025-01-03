@@ -14,7 +14,7 @@ function mermaid_string(s::SBML.Species)
         wikidata = search_wikidata(s)
         wikipedia_url = wikidata.sitelinks.enwiki.url
         title = best_title(wikidata)
-        url_str = """\t(<a href='$wikipedia_url'>⛓</a>)"""
+        url_str = """(<a href='$wikipedia_url'>⛓</a>)"""
     catch e
         if !(e isa BoundsError)
             rethrow(e)
@@ -49,11 +49,11 @@ function mermaid_string(m::SBML.Model, ((m1name, m2name), rs))
 
     reversible = any(r.reversible for r in rs)
     conn = if !isempty(label) && reversible
-        "<-$label->"
+        "<- \"$label\" -->"
     elseif isempty(label) && reversible
         "<->"
     elseif !isempty(label) && !reversible
-        "--$label->"
+        "-- \"$label\" -->"
     else
         @assert isempty(label) && !reversible
         "-->"
@@ -94,7 +94,7 @@ function diagram(model, species_of_interest)
 
     edges = map(Base.Fix1(mermaid_string, model), collect(names2reactions))
 
-    print("flowchart TD")
+    println("flowchart TD")
     lines = collect(values(name2vertex))
     push!(lines, "")
     append!(lines, edges)
